@@ -280,6 +280,7 @@ class vLLMRollout(BaseRollout):
                 "input_ids": seq,  # here input_ids become the whole sentences
                 "attention_mask": attention_mask,
                 "position_ids": position_ids,
+                "loss_mask": attention_mask
             },
             batch_size=batch_size,
         )
