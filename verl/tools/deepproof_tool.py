@@ -104,14 +104,14 @@ class FStarExecutionTool(BaseTool):
 
     async def execute(self, instance_id: str, parameters: dict[str, Any], **kwargs) -> Tuple[str, float, dict]:
         # print("TOOL CALL execute_fstar")
-        url = os.environ.get("FSTAR_VERIFIER_SERVER_HOST", "http://localhost:8000") + "/compute_score"
+        url = os.environ.get("FSTAR_VERIFIER_SERVER_HOST", "http://localhost:8005") + "/check_problem_solution"
         # print(parameters.keys())
 
         code = parameters["code"]
 
         payload = {
-            "solutions": [code],
-            "example_name": kwargs["tools_kwargs"]["example_name"]
+            "solution": code,
+            "problem_id": kwargs["tools_kwargs"]["example_name"]
         }
 
         try:
@@ -119,11 +119,7 @@ class FStarExecutionTool(BaseTool):
                 async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=15)) as response:
                     response.raise_for_status()
                     resp_json = await response.json()
-                    score = resp_json.get("scores", [-1])[0]
-                    message = "Success.\n" if score  == 1 else "Fail.\n"
-                    if score <= 0:
-                        message += resp_json.get("outputs", [""])[0] # FIXME
-                    return message, 0, {}
+                    return resp_json.get("messages", ""), 0, {}
         except Exception as e:
             # print(f"Request failed for example {extra_info.get('example_name')}: {e}")
             return f"Runtime error occurred.\n{e.__class__}: {e}", 0, {}
