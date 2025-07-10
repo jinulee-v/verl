@@ -119,7 +119,8 @@ class FStarExecutionTool(BaseTool):
                 async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=15)) as response:
                     response.raise_for_status()
                     resp_json = await response.json()
-                    return resp_json.get("messages", ""), 0, {}
+                    result_msg = "Verification Success: " + str(resp_json.get("result_code", -2) == 0 and resp_json.get("score") == 1.0) + "\n"
+                    return result_msg + resp_json.get("messages", ""), 0, {}
         except Exception as e:
             # print(f"Request failed for example {extra_info.get('example_name')}: {e}")
             return f"Runtime error occurred.\n{e.__class__}: {e}", 0, {}
