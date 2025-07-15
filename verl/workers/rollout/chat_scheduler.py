@@ -188,6 +188,8 @@ class ToolCompletionCallback(CompletionCallback):
         input_ids = torch.cat([prompts["input_ids"], responses["input_ids"]], dim=1)
         attention_mask = torch.cat([prompts["attention_mask"], responses["attention_mask"]], dim=1)
         position_ids = (attention_mask.cumsum(dim=1) - 1) * attention_mask
+        # concat first prompt_length tokens of attention_mask and response_mask
+        loss_mask = torch.cat([prompts["attention_mask"], response_mask], dim=1)
 
         batch = TensorDict(
             {
@@ -197,7 +199,7 @@ class ToolCompletionCallback(CompletionCallback):
                 "input_ids": input_ids,  # [bsz, prompt_length + response_length]
                 "attention_mask": attention_mask,  # [bsz, prompt_length + response_length]
                 "position_ids": position_ids,  # [bsz, prompt_length + response_length]
-                "loss_mask": attention_mask,
+                "loss_mask": loss_mask,
             },
             batch_size=len(input_ids),
         )

@@ -189,6 +189,7 @@ class vLLMRollout(BaseRollout):
         idx = prompts.batch["input_ids"]  # (bs, prompt_length)
         # left-padded attention_mask
         attention_mask = prompts.batch["attention_mask"]
+        loss_mask = prompts.batch["loss_mask"]
         position_ids = prompts.batch["position_ids"]
 
         # used to construct attention_mask
@@ -271,6 +272,7 @@ class vLLMRollout(BaseRollout):
         position_ids = torch.cat([position_ids, response_position_ids], dim=-1)
         response_attention_mask = get_response_mask(response_id=response, eos_token=eos_token_id, dtype=attention_mask.dtype)
         attention_mask = torch.cat((attention_mask, response_attention_mask), dim=-1)
+        loss_mask = torch.cat((loss_mask, response_attention_mask), dim=-1)
 
         # all the tp ranks should contain the same data here. data in all ranks are valid
         batch = TensorDict(
@@ -280,7 +282,7 @@ class vLLMRollout(BaseRollout):
                 "input_ids": seq,  # here input_ids become the whole sentences
                 "attention_mask": attention_mask,
                 "position_ids": position_ids,
-                "loss_mask": attention_mask
+                "loss_mask": loss_mask
             },
             batch_size=batch_size,
         )
